@@ -7,29 +7,35 @@ import io.github.jeanbottein.concierge.infrastructure.config.ConciergeProperties
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.eq;
 
 import org.springframework.context.annotation.Import;
+import org.mockito.Mock;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @WebFluxTest(ServiceAController.class)
 @Import(ServiceAControllerTest.TestConfig.class)
+@ExtendWith(MockitoExtension.class)
 class ServiceAControllerTest {
 
     @Autowired
     private WebTestClient webTestClient;
 
-    @MockBean
+    @Autowired
     private ProxyService proxyService;
 
     @TestConfiguration
@@ -37,8 +43,19 @@ class ServiceAControllerTest {
         @Bean
         public ConciergeProperties conciergeProperties() {
             ConciergeProperties properties = new ConciergeProperties();
-            properties.setServices(List.of("serviceA"));
+            Map<String, ConciergeProperties.ServiceConfig> services = new HashMap<>();
+            
+            ConciergeProperties.ServiceConfig serviceA = new ConciergeProperties.ServiceConfig();
+            serviceA.setTarget("https://jsonplaceholder.typicode.com");
+            services.put("serviceA", serviceA);
+            
+            properties.setServices(services);
             return properties;
+        }
+
+        @Bean
+        public ProxyService proxyService() {
+            return mock(ProxyService.class);
         }
     }
 
@@ -52,7 +69,15 @@ class ServiceAControllerTest {
                     "title": "delectus aut autem",
                     "completed": false
                 }""";
-        when(proxyService.proxyRequest(any(ProxyRequest.class)))
+        
+        ProxyRequest expectedRequest = new ProxyRequest(
+            "/todos/1", 
+            HttpMethod.GET, 
+            null, 
+            "https://jsonplaceholder.typicode.com"
+        );
+        
+        when(proxyService.proxyRequest(eq(expectedRequest)))
                 .thenReturn(Mono.just(expectedResponse));
 
         // When & Then
@@ -63,7 +88,6 @@ class ServiceAControllerTest {
                 .expectBody(String.class)
                 .isEqualTo(expectedResponse);
 
-        // Verify the correct ProxyRequest was created
-        verify(proxyService).proxyRequest(new ProxyRequest("/todos/1", HttpMethod.GET, null));
+        verify(proxyService).proxyRequest(expectedRequest);
     }
 } 

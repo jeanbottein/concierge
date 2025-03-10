@@ -8,4 +8,5 @@ public class ProxyRequest {
     String path;
     HttpMethod method;
     String body;
+    String targetUrl;
 } 

@@ -1,3 +1,4 @@
 concierge:
   services:
-    - serviceA 
+    serviceA:
+      target: "https://jsonplaceholder.typicode.com" 

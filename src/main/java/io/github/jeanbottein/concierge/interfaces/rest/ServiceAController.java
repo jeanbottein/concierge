@@ -4,7 +4,6 @@ import io.github.jeanbottein.concierge.application.ports.ProxyService;
 import io.github.jeanbottein.concierge.domain.proxy.ProxyRequest;
 import io.github.jeanbottein.concierge.infrastructure.config.ConciergeProperties;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +12,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/${concierge.services[0]}/**")
+@RequestMapping("/serviceA/**")
 @RequiredArgsConstructor
 public class ServiceAController {
 
@@ -25,13 +24,16 @@ public class ServiceAController {
             ServerWebExchange exchange,
             @RequestBody(required = false) String body
     ) {
-        String serviceName = properties.getServices().get(0);
+        String serviceName = "serviceA";
         String path = exchange.getRequest().getPath().value()
                             .replaceFirst("/" + serviceName, "");
+        String target = properties.getServices().get(serviceName).getTarget();
+        
         ProxyRequest proxyRequest = new ProxyRequest(
                 path,
                 exchange.getRequest().getMethod(),
-                body
+                body,
+                target
         );
 
         return proxyService.proxyRequest(proxyRequest)

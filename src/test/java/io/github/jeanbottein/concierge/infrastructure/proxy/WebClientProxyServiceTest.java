@@ -51,7 +51,7 @@ class WebClientProxyServiceTest {
                 .setBody(expectedResponse)
                 .addHeader("Content-Type", "application/json"));
 
-        ProxyRequest request = new ProxyRequest("/todos/1", HttpMethod.GET, null);
+        ProxyRequest request = new ProxyRequest("/todos/1", HttpMethod.GET, null,"http://jsonplaceholder.typicode.com"  );
 
         // When & Then
         StepVerifier.create(proxyService.proxyRequest(request))
