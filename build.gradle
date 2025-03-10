@@ -93,3 +93,49 @@ jacocoTestCoverageVerification {
 		}
 	}
 }
+
+// Add after the existing plugins section
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+task integrationTest(type: Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    
+    useJUnitPlatform()
+    
+    // Integration test naming patterns
+    include '**/*IT.java'
+    include '**/IT*.java'
+    include '**/*ITCase.java'
+
+    // Always run after unit tests
+    mustRunAfter test
+}
+
+// Update existing test task to exclude integration tests
+test {
+    useJUnitPlatform()
+    exclude '**/*IT.java'
+    exclude '**/IT*.java'
+    exclude '**/*ITCase.java'
+}
+
+// Optional: make check task depend on integration tests
+check.dependsOn integrationTest
