@@ -12,9 +12,13 @@ public class WebClientProxyService implements ProxyService {
     private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
 
     public WebClientProxyService() {
-        this.webClient = WebClient.builder()
+        this(WebClient.builder()
                 .baseUrl(BASE_URL)
-                .build();
+                .build());
+    }
+
+    public WebClientProxyService(WebClient webClient) {
+        this.webClient = webClient;
     }
 
     @Override
