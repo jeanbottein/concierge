@@ -2,3 +2,9 @@ proxying:
   services:
     serviceA:
       target: "https://jsonplaceholder.typicode.com" 
+
+logging:
+  level:
+    root: WARN
+    io.github.jeanbottein.concierge: DEBUG
+    
