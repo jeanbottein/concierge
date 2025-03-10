@@ -22,13 +22,24 @@ public class ProxyingEndpoint {
     ) {
         var path = exchange.getRequest().getPath().value()
                          .replaceFirst("/proxy", "");
-        var target = properties.services().get("serviceA").target();
+        
+        // Extract service name from path
+        String serviceName = path.split("/")[1];
+        
+        // Check if service exists
+        var serviceConfig = properties.services().get(serviceName);
+        if (serviceConfig == null) {
+            return Mono.just(ResponseEntity.notFound().build());
+        }
+        
+        // Remove service name from path
+        path = path.replaceFirst("/" + serviceName, "");
         
         return proxyingService.proxy(new Proxy(
                 path,
                 exchange.getRequest().getMethod(),
                 body,
-                target
+                serviceConfig.target()
         )).map(ResponseEntity::ok);
     }
 } 

@@ -1,0 +1,4 @@
+proxying:
+  services:
+    serviceA:
+      target: "https://jsonplaceholder.typicode.com" 

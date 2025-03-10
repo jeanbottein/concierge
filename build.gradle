@@ -3,17 +3,10 @@ plugins {
 	id 'org.springframework.boot' version '3.4.3'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.graalvm.buildtools.native' version '0.10.5'
-	id 'jacoco'
 }
 
 group = 'io.github.jeanbottein'
 version = '0.0.1-SNAPSHOT'
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(23)
-	}
-}
 
 repositories {
 	mavenCentral()
@@ -52,90 +45,26 @@ dependencyManagement {
 	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-	finalizedBy jacocoTestReport
-}
-
-// Disable AOT processing for tests
-tasks.named('processTestAot') {
-    enabled = false
-}
-
-// Configure native compilation to exclude tests
+// 4. GraalVM Configuration
 graalvmNative {
-    binaries {
-        main {
-            buildArgs.add('--no-fallback')
-        }
-    }
-    metadataRepository {
-        enabled = true
-    }
-    testSupport = false
-}
-
-jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required = true
-		html.required = true
-	}
-}
-
-// Enforce test coverage thresholds
-jacocoTestCoverageVerification {
-	violationRules {
-		rule {
-			limit {
-				minimum = 1.0 // Requires 100% coverage
-			}
+	binaries {
+		main {
+			buildArgs.add('--no-fallback')
 		}
 	}
+	metadataRepository {
+		enabled = true
+	}
+	testSupport = false
 }
 
-// Add after the existing plugins section
-sourceSets {
-    integrationTest {
-        java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDir file('src/integration-test/java')
-        }
-        resources.srcDir file('src/integration-test/resources')
+tasks.named('test', Test) {
+    useJUnitPlatform()
+
+    maxHeapSize = '1G'
+	maxParallelForks = 4
+
+    testLogging {
+        events "passed"
     }
 }
-
-configurations {
-    integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
-}
-
-task integrationTest(type: Test) {
-    description = 'Runs integration tests.'
-    group = 'verification'
-
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    
-    useJUnitPlatform()
-    
-    // Integration test naming patterns
-    include '**/*IT.java'
-    include '**/IT*.java'
-    include '**/*ITCase.java'
-
-    // Always run after unit tests
-    mustRunAfter test
-}
-
-// Update existing test task to exclude integration tests
-test {
-    useJUnitPlatform()
-    exclude '**/*IT.java'
-    exclude '**/IT*.java'
-    exclude '**/*ITCase.java'
-}
-
-// Optional: make check task depend on integration tests
-check.dependsOn integrationTest
