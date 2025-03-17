@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.4.3'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.graalvm.buildtools.native' version '0.10.5'
+	id 'jacoco'
 }
 
 group = 'io.github.jeanbottein'
@@ -66,5 +67,14 @@ tasks.named('test', Test) {
 
     testLogging {
         events "passed"
+    }
+
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        html.required = true
     }
 }
