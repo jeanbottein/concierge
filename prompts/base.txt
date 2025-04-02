@@ -1,0 +1,107 @@
+Primary Objectives:
+    Implement a REST/SOAP reverse proxy with resilience and caching features.
+    Follow "feature-first" principles as advocated by Josh Long.
+    Maintain minimal complexity (KISS).
+    Ensure testability and scalability.
+
+Target Tech Stack:
+    Spring Boot 3.4 + Java 23 (if applicable)
+    Modulith for modular decomposition
+    Apache Camel for integration
+    Resilience4J (Circuit Breaker + Retry)
+    Spring Cache Abstraction (+ Cache Provider)
+    Lombok for boilerplate reduction
+
+Architectural Guidelines:
+src/
+├─ features/
+│  ├─ proxy/
+│  │  ├─ rest/   // REST module
+│  │  ├─ soap/   // SOAP module
+│  │  └─ core/   // Shared code
+│  ├─ resilience/
+│  ├─ caching/
+└─ app/  
+
+
+Coding Rules:
+    Prefer functional @Bean definitions over stereotype annotations.
+    Use Java Records for DTOs.
+    Configure via @ConfigurationProperties.
+    Enable strict mode for property validation:
+
+spring.config.activate.on-profile=strict
+
+
+Configuration :
+    Use application.yml for configuration.
+    Use @ConfigurationProperties for property validation.
+    Use @Modulithic for Modulith configuration.
+
+concierge:
+  proxying:
+    serviceA:
+      name: "serviceA"
+      enabled: true
+      target: "https://jsonplaceholder.typicode.com"
+      caching:
+        enabled: true
+        ttl: 10s
+        key-fields: [userId, id]
+      resilience:
+        enabled: true
+        max-attempts: 3
+        delay: 1s
+        delay-factor: 2
+    serviceB:
+      name: "serviceB"
+      enabled: true
+      target: "https://api.example.com/users"
+      caching:
+        enabled: true
+        ttl: 10s
+        key-fields: [username]
+
+
+
+Feature Implementation:
+For each feature:
+    Create an autonomous Modulith module.
+    Expose a clear API via interfaces.
+    Implement two versions:
+        Naive version (without resilience/cache).
+        Decorated version (with aspects).
+Example of REST Proxy:
+
+java
+@Modulithic
+public class RestProxyFeature implements ApplicationRunner {
+
+    private final ProxyRouter router;
+    private final ResilienceDecorator resilience;
+    
+    public void run(ApplicationArguments args) {
+        router.route("/api/**")
+            .decorate(resilience::apply)
+            .toD("${target.service}/...");
+    }
+}
+
+Required Tests:
+    Contract tests for each endpoint (using Testcontainers).
+    Failure simulation with Resilience4J.
+    Cache performance tests (@SpringBootTest).
+    Validation of modular isolation via @ModulithTest.
+
+Collaboration Strategy:
+    Implement one feature at a time.
+    Interactive code review after each commit.
+    Refactoring guided by tests.
+    Incremental documentation via JavaDoc and ArchUnit.
+
+Kickoff Roadmap:
+    Initial setup of Modulith + Camel.
+    Basic REST proxy (without decorators).
+    Integration of Resilience4J Circuit Breaker.
+    Setup of reactive caching.
+    Addition of SOAP support via Camel CXF.

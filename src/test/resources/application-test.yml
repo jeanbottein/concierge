@@ -1,0 +1,24 @@
+# Test configuration
+server:
+  port: ${testAppPort}  # Use the Gradle property passed as system property
+
+concierge:
+  proxies:
+    serviceA:
+      enabled: true
+      target: "http://localhost:${mockServerPort}"  # Use the Gradle property passed as system property
+      caching:
+        enabled: true
+        ttl: 10s
+        key-fields: [id]
+      resilience:
+        enabled: true
+        max-attempts: 3
+        delay: 1s
+        delay-factor: 2
+    serviceB:
+      enabled: true
+      target: "http://localhost:${mockServerPort}"  # Use the Gradle property passed as system property
+      caching:
+        enabled: true
+        ttl: 10s

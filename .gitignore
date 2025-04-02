@@ -1,0 +1,12 @@
+# Build files
+build/
+.gradle/
+
+# OS files
+**/.DS_Store
+
+# Log files
+**/*.log
+
+# VSCode
+.vscode/

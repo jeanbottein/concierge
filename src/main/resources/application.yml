@@ -1,0 +1,42 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: concierge
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=60s
+
+concierge:
+  proxies:
+    serviceA:
+      enabled: true
+      target: "https://jsonplaceholder.typicode.com"
+      caching:
+        enabled: true
+        ttl: 10s
+        key-fields: [userId, id]
+      resilience:
+        enabled: true
+        max-attempts: 3
+        delay: 1s
+        delay-factor: 2
+    serviceB:
+      enabled: true
+      target: "https://jsonplaceholder.typicode.com"
+      caching:
+        enabled: true
+        ttl: 10s
+        key-fields: [username]
+      resilience:
+        enabled: true
+        max-attempts: 3
+        delay: 1s
+        delay-factor: 2
+
+logging:
+  level:
+    io.github.jeanbottein: DEBUG
+    org.apache.camel: INFO
